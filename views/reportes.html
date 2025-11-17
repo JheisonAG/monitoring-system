@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrchidCare Pro - Reportes</title>
+    <link rel="stylesheet" href="/views/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fas fa-seedling"></i>
+            <h1>OrchidCare</h1>
+        </div>
+        <nav class="nav-menu">
+            <a href="/dashboard" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/reportes" class="nav-item active">
+                <i class="fas fa-chart-line"></i>
+                <span>Reportes</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Configuración</span>
+            </a>
+        </nav>
+
+        <!-- Alerts Panel in Sidebar -->
+        <div class="sidebar-alerts">
+            <div class="alerts-header">
+                <h3>Alertas</h3>
+                <span class="alert-count" id="sidebar-alert-count">0</span>
+            </div>
+            <div class="alerts-list" id="sidebar-alerts">
+                <div class="loading">Cargando...</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <h2>Reportes y Análisis</h2>
+            <div class="header-actions">
+                <!-- Control de Riego Button -->
+                <button class="btn-icon btn-riego-header" id="btnRiegoHeader" title="Control de Riego">
+                    <i class="fas fa-tint"></i>
+                </button>
+                
+                <!-- Settings Button -->
+                <button class="btn-icon" id="btnSettings" title="Configuración">
+                    <i class="fas fa-cog"></i>
+                </button>
+                
+                <!-- Notifications Button -->
+                <button class="btn-icon notification-btn" id="btnNotifications" title="Notificaciones">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notification-badge">0</span>
+                </button>
+                
+                <!-- User Avatar -->
+                <div class="user-avatar">
+                    <span>AD</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Filters Section -->
+        <section class="filters-section">
+            <div class="filter-group">
+                <label>Rango de Fechas</label>
+                <select id="date-range" class="filter-select">
+                    <option value="7">Últimos 7 días</option>
+                    <option value="30">Últimos 30 días</option>
+                    <option value="90">Últimos 90 días</option>
+                    <option value="365">Último año</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Tipo de Reporte</label>
+                <select id="report-type" class="filter-select">
+                    <option value="condiciones">Condiciones Ambientales</option>
+                    <option value="riego">Historial de Riego</option>
+                    <option value="alertas">Alertas Generadas</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Formato</label>
+                <select id="format" class="filter-select">
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel</option>
+                    <option value="csv">CSV</option>
+                </select>
+            </div>
+            <button class="btn-primary" id="btn-generate-report">
+                <i class="fas fa-file-download"></i>
+                Generar Reporte
+            </button>
+        </section>
+
+        <!-- Statistics Cards -->
+        <section class="stats-grid">
+            <div class="stat-card-large">
+                <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #f6ad55, #fbd38d);">
+                    <i class="fas fa-thermometer-half"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Promedio Temperatura</h3>
+                    <div class="stat-value-large" id="avg-temp-report">--</div>
+                    <div class="stat-range">Rango: <span id="temp-range">--</span></div>
+                </div>
+            </div>
+
+            <div class="stat-card-large">
+                <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #4299e1, #63b3ed);">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Promedio Humedad</h3>
+                    <div class="stat-value-large" id="avg-humidity-report">--</div>
+                    <div class="stat-range">Rango: <span id="humidity-range">--</span></div>
+                </div>
+            </div>
+
+            <div class="stat-card-large">
+                <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #48bb78, #68d391);">
+                    <i class="fas fa-water"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Ciclos de Riego</h3>
+                    <div class="stat-value-large" id="riego-cycles">42</div>
+                    <div class="stat-range">Total Minutos: <span id="total-minutes">630</span></div>
+                </div>
+            </div>
+
+            <div class="stat-card-large">
+                <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #fc8181, #feb2b2);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Alertas Generadas</h3>
+                    <div class="stat-value-large" id="total-alerts">15</div>
+                    <div class="stat-range">Resueltas: <span id="resolved-alerts">13 (87%)</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <div class="charts-container">
+            <!-- Tendencias Ambientales -->
+            <section class="chart-section-full">
+                <div class="chart-header">
+                    <div class="chart-title-group">
+                        <h3><i class="fas fa-chart-area"></i> Tendencias Ambientales</h3>
+                    </div>
+                    <div class="chart-controls">
+                        <button class="btn-control active" data-trend="diario">Diario</button>
+                        <button class="btn-control" data-trend="semanal">Semanal</button>
+                        <button class="btn-control" data-trend="mensual">Mensual</button>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Distribution Charts -->
+            <div class="charts-row">
+                <section class="chart-section-half">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Distribución de Alertas</h3>
+                    </div>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="alertsChart"></canvas>
+                    </div>
+                </section>
+
+                <section class="chart-section-half">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Temperatura por Rango</h3>
+                    </div>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="tempRangeChart"></canvas>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <section class="data-table-section">
+            <div class="table-header">
+                <h3><i class="fas fa-table"></i> Datos Detallados</h3>
+                <button class="btn-export" id="btn-export-table">
+                    <i class="fas fa-download"></i>
+                    Exportar Tabla
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Temp. Promedio</th>
+                            <th>Temp. Max</th>
+                            <th>Temp. Min</th>
+                            <th>Humedad Promedio</th>
+                            <th>Humedad Max</th>
+                            <th>Humedad Min</th>
+                            <th>Alertas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-table-body">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary-color);"></i>
+                                <div style="margin-top: 12px; color: var(--text-light);">Cargando datos...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Control de Riego Modal -->
+    <div class="modal" id="modal-riego">
+        <div class="modal-overlay" id="modal-riego-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-tint"></i> Control de Riego</h3>
+                <button class="modal-close" id="modal-riego-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="control-status">
+                    <span class="status-label">Estado:</span>
+                    <span class="status-badge badge-inactive" id="riego-status">Inactivo</span>
+                </div>
+                
+                <div class="control-info">
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <span class="info-label">Duración programada</span>
+                            <span class="info-value" id="riego-duration">15 minutos</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-calendar"></i>
+                        <div>
+                            <span class="info-label">Frecuencia</span>
+                            <span class="info-value" id="riego-frequency">Cada 7 días</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn-primary btn-riego-action" id="btn-start-riego">
+                    <i class="fas fa-play"></i>
+                    Iniciar Riego Manual
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificaciones Dropdown -->
+    <div class="notifications-dropdown" id="notifications-dropdown">
+        <div class="notifications-header">
+            <h3>Notificaciones</h3>
+            <button class="btn-mark-all-read" id="btn-mark-all-read">
+                Marcar todo como leído
+            </button>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <div class="loading">Cargando notificaciones...</div>
+        </div>
+    </div>
+
+    <script src="/views/js/reportes.js"></script>
+</body>
+</html>

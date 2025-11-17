@@ -1,0 +1,17 @@
+# Node.js
+node_modules/
+dist/
+*.log
+
+# Entornos
+.env
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-service-account.json
+serviceAccountKey.json
+
+# Sistema
+.DS_Store
+orchid-care-pro-firebase-adminsdk-fbsvc-984c0868b8.json

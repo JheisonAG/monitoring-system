@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrchidCare Pro - Dashboard</title>
+    <link rel="stylesheet" href="/views/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fas fa-seedling"></i>
+            <h1>OrchidCare</h1>
+        </div>
+        <nav class="nav-menu">
+            <a href="/dashboard" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/reportes" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Reportes</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Configuración</span>
+            </a>
+        </nav>
+
+        <!-- Alerts Panel in Sidebar -->
+        <div class="sidebar-alerts">
+            <div class="alerts-header">
+                <h3>Alertas</h3>
+                <span class="alert-count" id="sidebar-alert-count">0</span>
+            </div>
+            <div class="alerts-list" id="sidebar-alerts">
+                <div class="loading">Cargando...</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <h2>Dashboard</h2>
+            <div class="header-actions">
+                <!-- Control de Riego Button -->
+                <button class="btn-icon btn-riego-header" id="btnRiegoHeader" title="Control de Riego">
+                    <i class="fas fa-tint"></i>
+                </button>
+                
+                <!-- Settings Button -->
+                <button class="btn-icon" id="btnSettings" title="Configuración">
+                    <i class="fas fa-cog"></i>
+                </button>
+                
+                <!-- Notifications Button -->
+                <button class="btn-icon notification-btn" id="btnNotifications" title="Notificaciones">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notification-badge">0</span>
+                </button>
+                
+                <!-- User Avatar -->
+                <div class="user-avatar">
+                    <span>AD</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Widgets Section -->
+        <section class="widgets-grid">
+            <div class="widget widget-humidity">
+                <div class="widget-header">
+                    <div class="widget-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="widget-info">
+                        <span class="widget-label">Humedad Actual</span>
+                        <span class="widget-value" id="humidity-value">--</span>
+                    </div>
+                    <span class="widget-badge badge-info" id="humidity-badge">
+                        <i class="fas fa-arrow-up"></i> --%
+                    </span>
+                </div>
+                <div class="widget-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-blue" id="humidity-progress" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-label">Rango óptimo: 75-82%</span>
+                </div>
+            </div>
+
+            <div class="widget widget-temperature">
+                <div class="widget-header">
+                    <div class="widget-icon">
+                        <i class="fas fa-thermometer-half"></i>
+                    </div>
+                    <div class="widget-info">
+                        <span class="widget-label">Temperatura</span>
+                        <span class="widget-value" id="temperature-value">--</span>
+                    </div>
+                    <span class="widget-badge badge-warning" id="temperature-badge">
+                        <i class="fas fa-arrow-down"></i> --°C
+                    </span>
+                </div>
+                <div class="widget-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-orange" id="temperature-progress" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-label">Rango óptimo: 18-24°C</span>
+                </div>
+            </div>
+
+            <div class="widget widget-watering" id="widget-watering">
+                <div class="widget-header">
+                    <div class="widget-icon" id="watering-icon">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div class="widget-info">
+                        <span class="widget-label" id="watering-label-text">Próximo Riego</span>
+                        <span class="widget-value" id="next-watering">Sin programar</span>
+                    </div>
+                    <span class="widget-badge badge-warning" id="watering-badge">
+                        <i class="fas fa-exclamation"></i> Sin programar
+                    </span>
+                </div>
+                
+                <!-- Progreso del riego en curso -->
+                <div class="widget-progress" id="watering-progress-container" style="display: none;">
+                    <div class="riego-status-details">
+                        <div class="status-item">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span id="watering-time-remaining">-- min</span>
+                            <small>Tiempo restante</small>
+                        </div>
+                        <div class="status-item">
+                            <i class="fas fa-percentage"></i>
+                            <span id="watering-percentage">--%</span>
+                            <small>Completado</small>
+                        </div>
+                        <div class="status-item">
+                            <i class="fas fa-clock"></i>
+                            <span id="watering-duration-total">-- min</span>
+                            <small>Duración total</small>
+                        </div>
+                    </div>
+                    <div class="progress-bar-large">
+                        <div class="progress-fill-animated" id="watering-progress" style="width: 0%">
+                            <span class="progress-text" id="watering-progress-text">0%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="widget-footer">
+                    <span class="progress-label" id="watering-footer-label">Programa tu próximo riego</span>
+                </div>
+            </div>
+
+            <div class="widget widget-status">
+                <div class="widget-header">
+                    <div class="widget-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div class="widget-info">
+                        <span class="widget-label">Estado del Sistema</span>
+                        <span class="widget-value" id="system-status">--</span>
+                    </div>
+                    <span class="widget-badge badge-success" id="status-badge">
+                        <i class="fas fa-circle"></i> --
+                    </span>
+                </div>
+                <div class="widget-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-green" id="status-progress" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-label" id="status-label">Última actualización: --</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart Section with Live Badge and Time Controls -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <div class="chart-title-group">
+                    <h3>Monitoreo en Tiempo Real</h3>
+                    <span class="live-badge">
+                        <i class="fas fa-circle"></i> En vivo
+                    </span>
+                </div>
+                <div class="chart-controls">
+                    <button class="btn-control active" data-period="1">1H</button>
+                    <button class="btn-control" data-period="6">6H</button>
+                    <button class="btn-control" data-period="24">24H</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="realTimeChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Average Statistics Section -->
+        <section class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-thermometer-half"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Promedio Temperatura</span>
+                    <span class="stat-value" id="avg-temperature">--</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Promedio Humedad</span>
+                    <span class="stat-value" id="avg-humidity">--</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Última Actualización</span>
+                    <span class="stat-value" id="last-update">--</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Historical Records Section -->
+        <section class="records-section">
+            <div class="records-header">
+                <h3>Historial de Registros</h3>
+                <div class="records-tabs">
+                    <button class="tab-btn active" data-period="hoy">Hoy</button>
+                    <button class="tab-btn" data-period="semana">Semana</button>
+                    <button class="tab-btn" data-period="mes">Mes</button>
+                </div>
+            </div>
+            <div class="records-controls">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Buscar registros...">
+                </div>
+                <button class="btn-export" id="btn-export">
+                    <i class="fas fa-download"></i>
+                    Exportar
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha y Hora</th>
+                            <th>Temperatura</th>
+                            <th>Humedad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="records-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary-color);"></i>
+                                <div style="margin-top: 12px; color: var(--text-light);">Cargando registros...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="pagination-btn" id="btn-prev" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="pagination-info" id="pagination-info">Página 1 de 1</span>
+                <button class="pagination-btn" id="btn-next" disabled>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Control de Riego Modal -->
+    <div class="modal" id="modal-riego">
+        <div class="modal-overlay" id="modal-riego-overlay"></div>
+        <div class="modal-content modal-riego-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-tint"></i> Control de Riego</h3>
+                <button class="modal-close" id="modal-riego-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Estado Actual -->
+                <div class="control-status">
+                    <span class="status-label">Estado:</span>
+                    <span class="status-badge badge-inactive" id="riego-status">Inactivo</span>
+                </div>
+                
+                <!-- Progreso del Riego (solo visible cuando está activo) -->
+                <div class="riego-progress-container" id="riego-progress-container" style="display: none;">
+                    <div class="progress-info">
+                        <span>Progreso: <strong id="riego-progreso">0%</strong></span>
+                        <span>Tiempo restante: <strong id="riego-tiempo-restante">0 min</strong></span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="riego-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <!-- Información Actual -->
+                <div class="control-info" id="riego-info">
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <span class="info-label">Duración programada</span>
+                            <span class="info-value" id="riego-duration">15 minutos</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-calendar"></i>
+                        <div>
+                            <span class="info-label">Frecuencia</span>
+                            <span class="info-value" id="riego-frequency">Cada 7 días</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <span class="info-label">Hora de inicio</span>
+                            <span class="info-value" id="riego-hora">08:00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Configuración de Riego -->
+                <div class="riego-config" id="riego-config">
+                    <h4><i class="fas fa-cog"></i> Configuración</h4>
+                    
+                    <div class="form-group">
+                        <label for="input-duracion">
+                            <i class="fas fa-stopwatch"></i> Duración del riego (minutos)
+                        </label>
+                        <input type="number" id="input-duracion" min="1" max="60" value="15">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="input-frecuencia">
+                            <i class="fas fa-calendar-alt"></i> Frecuencia (días)
+                        </label>
+                        <input type="number" id="input-frecuencia" min="1" max="30" value="7">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="input-hora">
+                            <i class="fas fa-clock"></i> Hora de inicio automático
+                        </label>
+                        <input type="time" id="input-hora" value="08:00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="input-activo" checked>
+                            <span>Activar riego automático</span>
+                        </label>
+                    </div>
+                    
+                    <button class="btn-secondary" id="btn-guardar-config">
+                        <i class="fas fa-save"></i>
+                        Guardar Configuración
+                    </button>
+                </div>
+                
+                <!-- Calendario de Riegos Programados -->
+                <div class="riego-calendario" id="riego-calendario">
+                    <h4><i class="fas fa-calendar-check"></i> Programar Riego Específico</h4>
+                    
+                    <div class="calendario-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="input-fecha-riego">
+                                    <i class="fas fa-calendar"></i> Fecha
+                                </label>
+                                <input type="date" id="input-fecha-riego" min="">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="input-hora-riego">
+                                    <i class="fas fa-clock"></i> Hora
+                                </label>
+                                <input type="time" id="input-hora-riego" value="08:00">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="input-duracion-riego">
+                                    <i class="fas fa-stopwatch"></i> Duración (min)
+                                </label>
+                                <input type="number" id="input-duracion-riego" min="1" max="60" value="15">
+                            </div>
+                        </div>
+                        
+                        <button class="btn-secondary" id="btn-programar-riego">
+                            <i class="fas fa-calendar-plus"></i>
+                            Agregar al Calendario
+                        </button>
+                    </div>
+                    
+                    <!-- Lista de Riegos Programados -->
+                    <div class="riegos-programados-list" id="riegos-programados-list">
+                        <h5>Riegos Programados</h5>
+                        <div class="riegos-items" id="riegos-items">
+                            <p class="no-items">No hay riegos programados</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botones de Acción -->
+                <div class="riego-actions">
+                    <button class="btn-primary" id="btn-start-riego">
+                        <i class="fas fa-play"></i>
+                        Iniciar Riego Manual
+                    </button>
+                    
+                    <button class="btn-danger" id="btn-stop-riego" style="display: none;">
+                        <i class="fas fa-stop"></i>
+                        Detener Riego
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificaciones Dropdown -->
+    <div class="notifications-dropdown" id="notifications-dropdown">
+        <div class="notifications-header">
+            <h3>Notificaciones</h3>
+            <button class="btn-mark-all-read" id="btn-mark-all-read">
+                Marcar todo como leído
+            </button>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <div class="loading">Cargando notificaciones...</div>
+        </div>
+    </div>
+
+    <!-- Alertas Detail Modal -->
+    <div class="modal" id="modal-alert-detail">
+        <div class="modal-overlay" id="modal-alert-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Detalle de Alerta</h3>
+                <button class="modal-close" id="modal-alert-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="alert-detail-body">
+                <!-- Contenido se cargará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/views/js/dashboard.js"></script>
+</body>
+</html>

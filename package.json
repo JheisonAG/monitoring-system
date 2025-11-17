@@ -1,0 +1,34 @@
+{
+  "name": "orchid-care-pro",
+  "version": "1.0.0",
+  "description": "Sistema de monitoreo de orquídeas con sensores IoT en tiempo real",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js",
+    "deploy": "firebase deploy"
+  },
+  "keywords": [
+    "iot",
+    "orchid",
+    "monitoring",
+    "sensors",
+    "firebase",
+    "supabase"
+  ],
+  "author": "OrchidCare Pro Team",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "chart.js": "^4.4.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "firebase": "^10.7.1",
+    "firebase-admin": "^12.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
