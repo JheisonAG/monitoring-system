@@ -76,7 +76,7 @@ export function iniciarRegistroAutomatico(idInvernadero = 1, intervaloMinutos = 
     clearInterval(intervaloRegistro);
   }
 
-  console.log(`📝 Iniciando registro automático cada ${intervaloMinutos} minuto(s)...`);
+  console.log(`Iniciando registro automático cada ${intervaloMinutos} minuto(s)...`);
 
   // Configurar nuevo intervalo
   intervaloRegistro = setInterval(async () => {
@@ -90,9 +90,9 @@ export function iniciarRegistroAutomatico(idInvernadero = 1, intervaloMinutos = 
       );
 
       if (resultado.exito) {
-        console.log(`✅ Registro guardado: ${lectura.temperatura}°C, ${lectura.humedad}% - Estado: ${resultado.estado}`);
+        console.log(`Registro guardado: ${lectura.temperatura}°C, ${lectura.humedad}% - Estado: ${resultado.estado}`);
       } else {
-        console.error('❌ Error al guardar registro:', resultado.error);
+        console.error('Error al guardar registro:', resultado.error);
       }
 
     } catch (error) {
