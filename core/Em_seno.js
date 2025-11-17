@@ -3,6 +3,7 @@
 // =============================================
 
 import dotenv from 'dotenv';
+import { supabase } from './DB_connections.js';
 
 dotenv.config();
 
@@ -27,7 +28,7 @@ function initRTDBIfConfigured() {
     const serviceAccountPath = join(__dirname, '..', 'serviceAccountKey.json');
     
     if (!existsSync(serviceAccountPath)) {
-      console.log('ℹ️ serviceAccountKey.json no encontrado. RTDB deshabilitada.');
+      console.log('serviceAccountKey.json no encontrado. RTDB deshabilitada.');
       return;
     }
     
@@ -40,9 +41,9 @@ function initRTDBIfConfigured() {
 
     rtdbRef = admin.database().ref();
     rtdbInitialized = true;
-    console.log('✅ RTDB inicializada: https://orchid-care-pro-default-rtdb.firebaseio.com');
+    console.log('RTDB inicializada: https://orchid-care-pro-default-rtdb.firebaseio.com');
   } catch (err) {
-    console.error('⚠️ No se pudo inicializar RTDB:', err && err.message ? err.message : err);
+    console.error('No se pudo inicializar RTDB:', err && err.message ? err.message : err);
   }
 }
 
@@ -148,7 +149,7 @@ function determinarEstado(temperatura, humedad) {
 // FUNCIÓN: Actualizar lecturas de sensores
 // Simula la actualización periódica de los sensores
 // =============================================
-export function actualizarSensores() {
+export async function actualizarSensores() {
   estadoActual.temperatura = generarVariacion(estadoActual.temperatura, CONFIG.temperatura);
   estadoActual.humedad = generarVariacion(estadoActual.humedad, CONFIG.humedad);
   estadoActual.timestamp = new Date();
@@ -180,7 +181,29 @@ export function actualizarSensores() {
     }
   } catch (err) {
     // No bloquear la simulación por errores en RTDB
-    // console.debug('RTDB disabled or init pending');
+  }
+  
+  // Guardar en Supabase para reportes históricos (cada 5 segundos)
+  try {
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('registros_sensores')
+        .insert({
+          id_invernadero: 1,
+          temperatura: estadoActual.temperatura,
+          humedad: estadoActual.humedad,
+          estado: estadoActual.estado,
+          fecha_hora: estadoActual.timestamp.toISOString()
+        });
+      
+      if (error) {
+        console.error('Error guardando en Supabase:', error.message);
+      }
+    } else {
+      console.warn('supabase no está disponible');
+    }
+  } catch (err) {
+    console.error('Excepción en Supabase:', err.message);
   }
   
   return { ...estadoActual };
@@ -202,11 +225,11 @@ export function obtenerLecturaActual() {
 // cuando estén disponibles. Ver RF3 y RF4 del proyecto.
 // =============================================
 export function iniciarSimulacion(callback) {
-  console.log('🔄 Simulación de sensores iniciada');
-  console.log(`📊 Actualizando cada ${CONFIG.intervaloActualizacion}ms`);
+  console.log('Simulación de sensores iniciada');
+  console.log(`Actualizando cada ${CONFIG.intervaloActualizacion}ms`);
   
-  const intervalo = setInterval(() => {
-    const lectura = actualizarSensores();
+  const intervalo = setInterval(async () => {
+    const lectura = await actualizarSensores();
     
     // Ejecutar callback si fue proporcionado
     if (callback && typeof callback === 'function') {
@@ -214,7 +237,7 @@ export function iniciarSimulacion(callback) {
     }
     
     // Log de la lectura (opcional, comentar en producción)
-    console.log(`🌡️  Temp: ${lectura.temperatura}°C | 💧 Humedad: ${lectura.humedad}% | Estado: ${lectura.estado}`);
+    console.log(`Temp: ${lectura.temperatura}°C | Humedad: ${lectura.humedad}% | Estado: ${lectura.estado}`);
   }, CONFIG.intervaloActualizacion);
   
   return intervalo;
@@ -226,7 +249,7 @@ export function iniciarSimulacion(callback) {
 export function detenerSimulacion(intervalo) {
   if (intervalo) {
     clearInterval(intervalo);
-    console.log('⏹️  Simulación de sensores detenida');
+    console.log('Simulación de sensores detenida');
   }
 }
 
@@ -480,7 +503,7 @@ export function actualizarConfiguracionRiego(nuevaConfig) {
     alertasActivas.unshift(alerta);
   }
   
-  console.log('⚙️ Configuración de riego actualizada:', configuracionRiego);
+  console.log('Configuración de riego actualizada:', configuracionRiego);
   return { success: true, configuracion: { ...configuracionRiego } };
 }
 

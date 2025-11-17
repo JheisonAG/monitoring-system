@@ -9,7 +9,7 @@ let tempRangeChart = null;
 // INICIALIZACIÓN
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('📊 Inicializando OrchidCare Pro Reportes...');
+    console.log('Inicializando OrchidCare Pro Reportes...');
     inicializarGraficos();
     cargarDatosReportes();
     configurarEventListeners();
@@ -189,7 +189,7 @@ async function cargarDatosReportes() {
         // Cargar alertas
         await cargarAlertas();
         
-        console.log('✅ Datos de reportes cargados');
+        console.log('Datos de reportes cargados');
     } catch (error) {
         console.error('Error al cargar datos de reportes:', error);
     }
@@ -525,4 +525,4 @@ async function cargarNotificacionesDropdown() {
     }
 }
 
-console.log('✅ OrchidCare Pro Reportes cargado completamente');
+console.log('OrchidCare Pro Reportes cargado completamente');

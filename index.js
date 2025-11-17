@@ -177,15 +177,41 @@ app.get('/api/dashboard/estadisticas', async (req, res) => {
 // Obtener registros históricos
 app.get('/api/registros', async (req, res) => {
   try {
-    const { generarDatosHistoricos } = await import('./core/Em_seno.js');
-    const limite = parseInt(req.query.limite) || 100;
+    const periodo = req.query.periodo || '7d';
+    const idInvernadero = parseInt(req.query.id_invernadero) || 1;
     
-    // Usar datos del simulador en lugar de BD
-    const registros = generarDatosHistoricos(limite);
+    let diasAtras;
+    switch(periodo) {
+      case '1d': diasAtras = 1; break;
+      case '7d': diasAtras = 7; break;
+      case '30d': diasAtras = 30; break;
+      case '90d': diasAtras = 90; break;
+      case '1a': diasAtras = 365; break;
+      default: diasAtras = 7;
+    }
+    
+    const { obtenerDatosPorPeriodo } = await import('./features/services/ReporteService.js');
+    const resultado = await obtenerDatosPorPeriodo(idInvernadero, diasAtras);
+    
+    if (!resultado.exito) {
+      // Fallback a datos simulados
+      const { generarDatosHistoricos } = await import('./core/Em_seno.js');
+      const limite = parseInt(req.query.limite) || 100;
+      const registros = generarDatosHistoricos(limite);
+      
+      return res.json({
+        success: true,
+        data: registros,
+        source: 'simulado'
+      });
+    }
     
     res.json({
       success: true,
-      data: registros
+      data: resultado.registros,
+      periodo: periodo,
+      total: resultado.registros.length,
+      source: 'supabase'
     });
   } catch (error) {
     console.error('Error en /api/registros:', error);
@@ -196,43 +222,61 @@ app.get('/api/registros', async (req, res) => {
   }
 });
 
-// Obtener datos para reportes
+// Obtener datos para reportes (con datos reales de Supabase)
 app.get('/api/registros/reportes', async (req, res) => {
   try {
-    const periodo = req.query.periodo || 'hoy';
+    const periodo = req.query.periodo || 'semana';
+    const idInvernadero = parseInt(req.query.id_invernadero) || 1;
     
-    // Generar datos de ejemplo para los últimos 30 días
-    const registros = [];
-    const diasPeriodo = periodo === 'hoy' ? 1 : periodo === 'semana' ? 7 : periodo === 'mes' ? 30 : 90;
+    const { generarReporte, obtenerResumenAlertas } = await import('./features/services/ReporteService.js');
     
-    for (let i = diasPeriodo - 1; i >= 0; i--) {
-      const fecha = new Date();
-      fecha.setDate(fecha.getDate() - i);
+    const reporte = await generarReporte(idInvernadero, periodo);
+    
+    if (!reporte.exito) {
+      // Fallback a datos simulados si Supabase no está disponible
+      const diasPeriodo = periodo === 'hoy' ? 1 : periodo === 'semana' ? 7 : periodo === 'mes' ? 30 : 90;
+      const registros = [];
       
-      // Generar valores aleatorios dentro de rangos realistas
-      const tempBase = 21;
-      const humBase = 78;
+      for (let i = diasPeriodo - 1; i >= 0; i--) {
+        const fecha = new Date();
+        fecha.setDate(fecha.getDate() - i);
+        const tempBase = 21;
+        const humBase = 78;
+        
+        registros.push({
+          fecha: fecha.toISOString().split('T')[0],
+          temperatura: {
+            promedio: Math.round((tempBase + (Math.random() - 0.5) * 4) * 10) / 10,
+            minima: Math.round((tempBase - 2 + Math.random() * 2) * 10) / 10,
+            maxima: Math.round((tempBase + 2 + Math.random() * 2) * 10) / 10
+          },
+          humedad: {
+            promedio: Math.round((humBase + (Math.random() - 0.5) * 8) * 10) / 10,
+            minima: Math.round((humBase - 4 + Math.random() * 2) * 10) / 10,
+            maxima: Math.round((humBase + 4 + Math.random() * 2) * 10) / 10
+          },
+          alertas: Math.floor(Math.random() * 3),
+          registros: Math.floor(Math.random() * 100) + 50
+        });
+      }
       
-      registros.push({
-        fecha: fecha.toISOString().split('T')[0],
-        temperatura: {
-          promedio: Math.round((tempBase + (Math.random() - 0.5) * 4) * 10) / 10,
-          minima: Math.round((tempBase - 2 + Math.random() * 2) * 10) / 10,
-          maxima: Math.round((tempBase + 2 + Math.random() * 2) * 10) / 10
-        },
-        humedad: {
-          promedio: Math.round((humBase + (Math.random() - 0.5) * 8) * 10) / 10,
-          minima: Math.round((humBase - 4 + Math.random() * 2) * 10) / 10,
-          maxima: Math.round((humBase + 4 + Math.random() * 2) * 10) / 10
-        },
-        alertas: Math.floor(Math.random() * 3),
-        riegosRealizados: Math.random() > 0.7 ? 1 : 0
+      return res.json({
+        success: true,
+        data: registros,
+        source: 'simulado'
       });
     }
     
+    const alertas = await obtenerResumenAlertas(idInvernadero, reporte.dias);
+    
     res.json({
       success: true,
-      data: registros
+      data: reporte.datosAgrupados,
+      tendencias: reporte.tendencias,
+      alertas: alertas.exito ? alertas.resumen : null,
+      totalRegistros: reporte.totalRegistros,
+      periodo: reporte.periodo,
+      source: 'supabase'
     });
   } catch (error) {
     console.error('Error en /api/registros/reportes:', error);
@@ -604,11 +648,11 @@ async function iniciarServidor() {
     const conexionExitosa = await verificarConexion();
     
     if (!conexionExitosa) {
-      console.warn('⚠️  No se pudo conectar a Supabase. Continuando en modo simulación...\n');
+      console.warn('No se pudo conectar a Supabase. Continuando en modo simulación...\n');
     }
 
     // Iniciar simulación de sensores
-    console.log('🔄 Iniciando simulación de sensores...');
+    console.log('Iniciando simulación de sensores...');
     intervaloSimulacion = iniciarSimulacion((lectura) => {
       // Callback opcional para procesar cada lectura
       // console.log(`📊 Lectura: ${lectura.temperatura}°C, ${lectura.humedad}%`);
@@ -629,7 +673,7 @@ async function iniciarServidor() {
     });
 
   } catch (error) {
-    console.error('❌ Error al iniciar el servidor:', error);
+    console.error('Error al iniciar el servidor:', error);
     process.exit(1);
   }
 }
